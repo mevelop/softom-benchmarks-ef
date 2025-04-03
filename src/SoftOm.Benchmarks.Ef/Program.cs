@@ -45,4 +45,6 @@ await DatabaseContext
 //
 // var a = 1;
 
+// BenchmarkRunner.Run<EfBenchmarkAsync>();
+
 BenchmarkRunner.Run<EfBenchmark>();

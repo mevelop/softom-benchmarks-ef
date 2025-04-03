@@ -12,7 +12,6 @@ namespace SoftOm.Benchmarks.Ef;
 [MeanColumn, MemoryDiagnoser]
 public class EfBenchmark
 {
-    private static readonly CancellationToken CancellationToken = CancellationToken.None;
     private NpgsqlDataSource _dapper;
 
     [Params(5, 50, 100, 300)]
@@ -31,85 +30,76 @@ public class EfBenchmark
     }
 
     [Benchmark]
-    public async Task<IReadOnlyList<Blog>> Ef_Include_NoTracking_ToArray()
+    public IReadOnlyList<Blog> Ef_Include_NoTracking_ToArray()
     {
-        await using var context = await GetDatabaseContextAsync(CancellationToken).ConfigureAwait(false);
+        using var context = GetDatabaseContext();
 
-        return await context.Blogs
+        return context.Blogs
             .Take(N)
             .Include(x => x.Posts)
             .AsNoTracking()
-            .ToArrayAsync(CancellationToken)
-            .ConfigureAwait(false);
+            .ToArray();
     }
 
     [Benchmark]
-    public async Task<IReadOnlyList<Blog>> Ef_Include_Tracking_ToList()
+    public IReadOnlyList<Blog> Ef_Include_Tracking_ToList()
     {
-        await using var context = await GetDatabaseContextAsync(CancellationToken).ConfigureAwait(false);
+        using var context = GetDatabaseContext();
 
-        return await context.Blogs
+        return context.Blogs
             .Take(N)
             .Include(x => x.Posts)
-            .ToListAsync(CancellationToken)
-            .ConfigureAwait(false);
+            .ToList();
     }
 
     [Benchmark]
-    public async Task<IReadOnlyList<Blog>> Ef_Load_Tracking_ToList()
+    public IReadOnlyList<Blog> Ef_Load_Tracking_ToList()
     {
-        await using var context = await GetDatabaseContextAsync(CancellationToken).ConfigureAwait(false);
+        using var context = GetDatabaseContext();
 
-        var blogs = await context.Blogs
+        var blogs = context.Blogs
             .Take(N)
-            .ToListAsync(CancellationToken)
-            .ConfigureAwait(false);
+            .ToList();
 
-        await context.Posts
+        context.Posts
             .Where(x => blogs.Select(y => y.Id).Contains(x.BlogId))
-            .LoadAsync(CancellationToken)
-            .ConfigureAwait(false);
+            .Load();
 
         return blogs;
     }
 
     [Benchmark]
-    public async Task<IReadOnlyList<Blog>> Ef_LoadAsList_Tracking_ToList()
+    public IReadOnlyList<Blog> Ef_LoadAsList_Tracking_ToList()
     {
-        await using var context = await GetDatabaseContextAsync(CancellationToken).ConfigureAwait(false);
+        using var context = GetDatabaseContext();
 
-        var blogs = await context.Blogs
+        var blogs = context.Blogs
             .Take(N)
-            .ToListAsync(CancellationToken)
-            .ConfigureAwait(false);
+            .ToList();
 
         var blogIds = blogs.Select(x => x.Id).ToArray();
 
-        await context.Posts
+        _ = context.Posts
             .Where(x => blogIds.Contains(x.BlogId))
-            .ToListAsync(CancellationToken)
-            .ConfigureAwait(false);
+            .ToList();
 
         return blogs;
     }
 
     [Benchmark]
-    public async Task<IReadOnlyList<Blog>> Ef_Load_NoTracking_ToDict()
+    public IReadOnlyList<Blog> Ef_Load_NoTracking_ToDict()
     {
-        await using var context = await GetDatabaseContextAsync(CancellationToken).ConfigureAwait(false);
+        using var context = GetDatabaseContext();
 
-        var blogs = await context.Blogs
+        var blogs = context.Blogs
             .Take(N)
             .AsNoTracking()
-            .ToDictionaryAsync(x => x.Id, x => x, CancellationToken)
-            .ConfigureAwait(false);
+            .ToDictionary(x => x.Id, x => x);
 
-        await foreach (var post in context.Posts
-                           .Where(x => blogs.Keys.Contains(x.BlogId))
-                           .AsNoTracking()
-                           .AsAsyncEnumerable()
-                           .WithCancellation(CancellationToken)
-                           .ConfigureAwait(false))
+        foreach (var post in context.Posts
+                     .Where(x => blogs.Keys.Contains(x.BlogId))
+                     .AsNoTracking()
+                     .AsEnumerable())
         {
             blogs[post.BlogId].Posts.Add(post);
         }
@@ -118,11 +108,11 @@ public class EfBenchmark
     }
 
     [Benchmark]
-    public async Task<IReadOnlyList<Blog>> Ef_FromSql_Tracking_ToList()
+    public IReadOnlyList<Blog> Ef_FromSql_Tracking_ToList()
     {
-        var context = await GetDatabaseContextAsync(CancellationToken).ConfigureAwait(false);
+        using var context = GetDatabaseContext();
 
-        var blogs = await context.Blogs
+        var blogs = context.Blogs
             .FromSql($"""
                       SELECT
                           *
@@ -130,10 +120,9 @@ public class EfBenchmark
                       ORDER BY b."Id"
                       LIMIT {N}
                       """)
-            .ToListAsync(CancellationToken)
-            .ConfigureAwait(false);
+            .ToList();
 
-        await context.Posts
+        context.Posts
             .FromSql($"""
                       SELECT
                           * 
@@ -141,18 +130,17 @@ public class EfBenchmark
                       WHERE p."BlogId" = ANY ({blogs.Select(x => x.Id)})
                       ORDER BY p."Id"
                       """)
-            .LoadAsync(CancellationToken)
-            .ConfigureAwait(false);
+            .Load();
 
         return blogs;
     }
 
     [Benchmark]
-    public async Task<IReadOnlyList<Blog>> Ef_FromSql_NoTracking_ToList()
+    public IReadOnlyList<Blog> Ef_FromSql_NoTracking_ToList()
     {
-        var context = await GetDatabaseContextAsync(CancellationToken).ConfigureAwait(false);
+        using var context = GetDatabaseContext();
 
-        var blogs = await context.Blogs
+        var blogs = context.Blogs
             .FromSql($"""
                       SELECT
                           *
@@ -161,21 +149,18 @@ public class EfBenchmark
                       LIMIT {N}
                       """)
             .AsNoTracking()
-            .ToDictionaryAsync(x => x.Id, x => x, CancellationToken)
-            .ConfigureAwait(false);
+            .ToDictionary(x => x.Id, x => x);
 
-        await foreach (var post in context.Posts
-                           .FromSql($"""
-                                     SELECT
-                                         * 
-                                     FROM "Posts" AS p
-                                     WHERE p."BlogId" = ANY ({blogs.Keys})
-                                     ORDER BY p."Id"
-                                     """)
-                           .AsNoTracking()
-                           .AsAsyncEnumerable()
-                           .WithCancellation(CancellationToken)
-                           .ConfigureAwait(false))
+        foreach (var post in context.Posts
+                     .FromSql($"""
+                               SELECT
+                                   * 
+                               FROM "Posts" AS p
+                               WHERE p."BlogId" = ANY ({blogs.Keys})
+                               ORDER BY p."Id"
+                               """)
+                     .AsNoTracking()
+                     .AsEnumerable())
         {
             blogs[post.BlogId].Posts.Add(post);
         }
@@ -184,32 +169,28 @@ public class EfBenchmark
     }
 
     [Benchmark(Baseline = true)]
-    public async Task<Blog[]> Dapper_TwoQuery()
+    public Blog[] Dapper_TwoQuery()
     {
-        await using var connection = await _dapper
-            .OpenConnectionAsync(CancellationToken)
-            .ConfigureAwait(false);
+        using var connection = _dapper.OpenConnection();
 
-        var blogs = (await connection
-                .QueryAsync<Blog>("""
-                                  SELECT
-                                      *
-                                  FROM "Blogs" AS b 
-                                  ORDER BY b."Id"
-                                  LIMIT @n
-                                  """, new { n = N })
-                .ConfigureAwait(false))
+        var blogs = connection
+            .Query<Blog>("""
+                         SELECT
+                             *
+                         FROM "Blogs" AS b 
+                         ORDER BY b."Id"
+                         LIMIT @n
+                         """, new { n = N })
             .ToDictionary(x => x.Id, x => x);
 
-        foreach (var post in await connection
-                     .QueryAsync<Post>("""
-                                       SELECT
-                                           * 
-                                       FROM "Posts" AS p
-                                       WHERE p."BlogId" = ANY (@ids)
-                                       ORDER BY p."Id"
-                                       """, new { ids = blogs.Keys.ToArray() })
-                     .ConfigureAwait(false))
+        foreach (var post in connection
+                     .Query<Post>("""
+                                  SELECT
+                                      * 
+                                  FROM "Posts" AS p
+                                  WHERE p."BlogId" = ANY (@ids)
+                                  ORDER BY p."Id"
+                                  """, new { ids = blogs.Keys.ToArray() }))
         {
             blogs[post.BlogId].Posts.Add(post);
         }
@@ -217,6 +198,5 @@ public class EfBenchmark
         return blogs.Values.ToArray();
     }
 
-    private static ValueTask<DatabaseContext> GetDatabaseContextAsync(CancellationToken cancellationToken)
-        => ValueTask.FromResult(new DatabaseContext());
+    private static DatabaseContext GetDatabaseContext() => new DatabaseContext();
 }
