@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+    db:
+        image: postgres:17.4-alpine3.21
+        container_name: softom-benchmarks-db
+        environment: 
+            POSTGRES_DB: pg-db
+            POSTGRES_USER: pg-user
+            POSTGRES_PASSWORD: pg-password
+        ports: 
+            - "5101:5432"
+        volumes: 
+            - ./db:/var/lib/postgresql/data
