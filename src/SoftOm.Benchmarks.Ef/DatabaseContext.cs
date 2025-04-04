@@ -7,12 +7,13 @@ namespace SoftOm.Benchmarks.Ef;
 public class DatabaseContext(DbContextOptions<DatabaseContext> options)
     : DbContext(options)
 {
-    public const string ConnectionString = "Host=localhost;" +
-                                           "Port=5101;" +
-                                           "Database=softom-ef;" +
-                                           "Username=pg-user;" +
-                                           "Password=pg-password;" +
-                                           "Pooling=true;";
+    public static readonly string ConnectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") ??
+                                                     "Host=localhost;" +
+                                                     "Port=5101;" +
+                                                     "Database=softom-ef;" +
+                                                     "Username=pg-user;" +
+                                                     "Password=pg-password;" +
+                                                     "Pooling=true;";
 
     private const int BlogCount = 300;
     private const int PostCount = 20;

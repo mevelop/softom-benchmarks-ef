@@ -4,11 +4,30 @@ services:
     db:
         image: postgres:17.4-alpine3.21
         container_name: softom-benchmarks-db
-        environment: 
+        environment:
             POSTGRES_DB: pg-db
             POSTGRES_USER: pg-user
             POSTGRES_PASSWORD: pg-password
-        ports: 
+        ports:
             - "5101:5432"
-        volumes: 
+        volumes:
             - ./db:/var/lib/postgresql/data
+        networks:
+            - network-softom-benchmarks
+    
+    app:
+        image: softom-benchmarks-app:0.1
+        container_name: softom-benchmarks-app
+        environment:
+            DOTNET_ENVIRONMENT: Development
+            DB_CONNECTION_STRING: "Host=softom-benchmarks-db;Port=5432;Database=softom-ef;Username=pg-user;Password=pg-password;Pooling=true;"
+        build:
+            context: .
+            dockerfile: src/SoftOm.Benchmarks.Ef/Dockerfile
+        networks:
+            - network-softom-benchmarks
+
+networks:
+    network-softom-benchmarks:
+        name: network-softom-benchmarks-01
+        driver: bridge

@@ -1,21 +1,27 @@
 ## Запуск
 
 #### Поднятие БД
-Если нет своего PostgreSQL (иначе поменять строку подключения в коде):
-
-`docker-compose -p softom-benchmarks -f docker-compose.yml up -d db`
+> Если нет своего PostgreSQL (иначе поменять строку подключения в коде):
+> 
+> `docker-compose -p softom-benchmarks -f docker-compose.yml up -d db`
 
 #### Создание миграции
-Если есть желание поиграться или создать самому с нуля:
-
-`cd src/SoftOm.Benchmarks.Ef`
-
-`dotnet ef migrations add InitialCreate`
+> Если есть желание поиграться или создать самому с нуля:
+> 
+> `cd src/SoftOm.Benchmarks.Ef`
+> 
+> `dotnet ef migrations add InitialCreate`
 
 #### Запуск тестирования
-`cd src/SoftOm.Benchmarks.Ef`
-
-`dotnet run -c Release`
+> `cd src/SoftOm.Benchmarks.Ef`
+> 
+> `dotnet run -c Release`
+> 
+> Или через docker:
+> 
+> запуск `docker-compose -p softom-benchmarks -f docker-compose.yml up -d --build --force-recreate app`
+> 
+> удаление `docker-compose -p softom-benchmarks -f docker-compose.yml down app`
 
 
 ## Результаты
@@ -31,6 +37,8 @@ Apple M1 Pro, 1 CPU, 8 logical and 8 physical cores
 Job=.NET 9.0  Runtime=.NET 9.0  
 
 ```
+<details><summary>Подробности</summary>
+
 | Method                        | N   | Mean      | Error     | StdDev    | Median    | Ratio | RatioSD | Gen0      | Gen1      | Gen2     | Allocated   | Alloc Ratio |
 |------------------------------ |---- |----------:|----------:|----------:|----------:|------:|--------:|----------:|----------:|---------:|------------:|------------:|
 | Ef_Load_Tracking_ToList       | 5   |  1.333 ms | 0.0207 ms | 0.0184 ms |  1.330 ms |  1.20 |    0.02 |   66.4063 |   23.4375 |        - |   422.05 KB |        1.62 |
@@ -69,6 +77,7 @@ Job=.NET 9.0  Runtime=.NET 9.0
 | Ef_Load_NoTracking_ToDict     | 300 | 28.798 ms | 0.2942 ms | 0.2608 ms | 28.690 ms |  0.99 |    0.01 | 2906.2500 | 1281.2500 | 375.0000 | 15949.15 KB |        1.04 |
 | Ef_FromSql_NoTracking_ToList  | 300 | 28.585 ms | 0.2276 ms | 0.2018 ms | 28.543 ms |  0.98 |    0.01 | 2906.2500 | 1281.2500 | 375.0000 | 15948.52 KB |        1.04 |
 
+</details><br/>
 
 ```
 
@@ -81,6 +90,8 @@ AMD Ryzen 5 5600G with Radeon Graphics, 1 CPU, 12 logical and 6 physical cores
 Job=.NET 9.0  Runtime=.NET 9.0  
 
 ```
+<details><summary>Подробности</summary>
+
 | Method                        | N   | Mean       | Error     | StdDev    | Median     | Ratio | RatioSD | Gen0      | Gen1      | Gen2      | Allocated   | Alloc Ratio |
 |------------------------------ |---- |-----------:|----------:|----------:|-----------:|------:|--------:|----------:|----------:|----------:|------------:|------------:|
 | Ef_Include_NoTracking_ToArray | 5   |   2.172 ms | 0.2827 ms | 0.8201 ms |   1.535 ms |  1.57 |    0.59 |   42.9688 |   11.7188 |         - |   373.22 KB |        1.44 |
@@ -119,6 +130,8 @@ Job=.NET 9.0  Runtime=.NET 9.0
 | Ef_Load_NoTracking_ToDict     | 300 |  30.725 ms | 0.5729 ms | 0.8574 ms |  30.740 ms |  1.20 |    0.04 | 2733.3333 | 2600.0000 |  800.0000 | 15904.84 KB |        1.04 |
 | Dapper_TwoQuery               | 300 |  25.584 ms | 0.4980 ms | 0.5329 ms |  25.682 ms |  1.00 |    0.03 | 2218.7500 | 2093.7500 |  750.0000 |  15302.9 KB |        1.00 |
 
+</details><br/>
+
 #### Синхронные
 ```
 
@@ -131,6 +144,8 @@ Apple M1 Pro, 1 CPU, 8 logical and 8 physical cores
 Job=.NET 9.0  Runtime=.NET 9.0  
 
 ```
+<details><summary>Подробности</summary>
+
 | Method                        | N   | Mean      | Error     | StdDev    | Ratio | RatioSD | Gen0      | Gen1      | Gen2     | Allocated   | Alloc Ratio |
 |------------------------------ |---- |----------:|----------:|----------:|------:|--------:|----------:|----------:|---------:|------------:|------------:|
 | Ef_FromSql_Tracking_ToList    | 5   |  1.265 ms | 0.0085 ms | 0.0076 ms |  1.16 |    0.01 |   66.4063 |   23.4375 |        - |   417.32 KB |        1.61 |
@@ -169,3 +184,58 @@ Job=.NET 9.0  Runtime=.NET 9.0
 | Ef_Load_NoTracking_ToDict     | 300 | 29.098 ms | 0.1616 ms | 0.1432 ms |  1.00 |    0.01 | 2906.2500 | 1312.5000 | 406.2500 | 15925.56 KB |        1.04 |
 | Ef_FromSql_NoTracking_ToList  | 300 | 29.045 ms | 0.2946 ms | 0.2755 ms |  1.00 |    0.01 | 2875.0000 | 1250.0000 | 375.0000 |  15930.5 KB |        1.04 |
 
+</details><br/>
+
+#### Docker
+```
+
+BenchmarkDotNet v0.14.0, Debian GNU/Linux 12 (bookworm) (container)
+Unknown processor
+.NET SDK 9.0.202
+  [Host]   : .NET 9.0.3 (9.0.325.11113), Arm64 RyuJIT AdvSIMD
+  .NET 9.0 : .NET 9.0.3 (9.0.325.11113), Arm64 RyuJIT AdvSIMD
+
+Job=.NET 9.0  Runtime=.NET 9.0  
+
+```
+<details><summary>Подробности</summary>
+
+| Method                        | N   | Mean        | Error       | StdDev      | Median      | Ratio | RatioSD | Gen0      | Gen1      | Gen2     | Allocated   | Alloc Ratio |
+|------------------------------ |---- |------------:|------------:|------------:|------------:|------:|--------:|----------:|----------:|---------:|------------:|------------:|
+| Ef_Include_Tracking_ToList    | 5   |    830.6 us |    25.05 us |    72.68 us |    809.4 us |  1.85 |    0.16 |   93.7500 |   39.0625 |        - |   434.54 KB |        1.68 |
+| Ef_Include_NoTracking_ToArray | 5   |    697.2 us |    13.35 us |    29.03 us |    690.9 us |  1.55 |    0.06 |   85.9375 |   25.3906 |        - |   367.77 KB |        1.42 |
+| Ef_FromSql_Tracking_ToList    | 5   |    660.3 us |     5.99 us |     5.60 us |    661.4 us |  1.47 |    0.01 |   91.7969 |   33.2031 |        - |   416.66 KB |        1.61 |
+| Ef_LoadAsList_Tracking_ToList | 5   |    629.3 us |    12.18 us |    11.39 us |    630.0 us |  1.40 |    0.03 |   85.9375 |   31.2500 |        - |   414.15 KB |        1.60 |
+| Ef_Load_Tracking_ToList       | 5   |    626.8 us |     4.47 us |     3.73 us |    626.5 us |  1.40 |    0.01 |   91.7969 |   33.2031 |        - |   417.91 KB |        1.62 |
+| Ef_FromSql_NoTracking_ToList  | 5   |    591.1 us |    11.66 us |    15.56 us |    585.7 us |  1.32 |    0.03 |   72.2656 |   19.5313 |        - |   334.17 KB |        1.29 |
+| Ef_Load_NoTracking_ToDict     | 5   |    547.7 us |     7.09 us |     6.29 us |    547.2 us |  1.22 |    0.01 |   74.2188 |   17.5781 |        - |   329.64 KB |        1.28 |
+| Dapper_TwoQuery               | 5   |    448.8 us |     2.24 us |     1.99 us |    448.7 us |  1.00 |    0.01 |   61.5234 |   12.6953 |        - |   258.21 KB |        1.00 |
+|                               |     |             |             |             |             |       |         |           |           |          |             |             |
+| Ef_Include_Tracking_ToList    | 50  |  5,557.7 us |    74.19 us |    69.39 us |  5,561.8 us |  2.60 |    0.04 |  656.2500 |  531.2500 |        - |  3814.83 KB |        1.50 |
+| Ef_Include_NoTracking_ToArray | 50  |  4,476.1 us |    42.22 us |    39.50 us |  4,465.1 us |  2.10 |    0.03 |  523.4375 |  500.0000 |        - |  3140.29 KB |        1.23 |
+| Ef_FromSql_Tracking_ToList    | 50  |  3,291.2 us |    33.55 us |    31.38 us |  3,291.6 us |  1.54 |    0.02 |  601.5625 |  523.4375 |        - |  3551.74 KB |        1.39 |
+| Ef_Load_Tracking_ToList       | 50  |  2,808.0 us |    25.66 us |    24.00 us |  2,815.3 us |  1.31 |    0.02 |  601.5625 |  578.1250 |        - |  3562.05 KB |        1.40 |
+| Ef_LoadAsList_Tracking_ToList | 50  |  2,806.5 us |    41.85 us |    39.15 us |  2,800.8 us |  1.31 |    0.02 |  609.3750 |  546.8750 |        - |  3563.34 KB |        1.40 |
+| Ef_FromSql_NoTracking_ToList  | 50  |  2,380.0 us |    35.06 us |    32.80 us |  2,371.9 us |  1.11 |    0.02 |  476.5625 |  359.3750 |        - |  2709.54 KB |        1.06 |
+| Dapper_TwoQuery               | 50  |  2,135.8 us |    22.25 us |    20.81 us |  2,134.2 us |  1.00 |    0.01 |  472.6563 |  316.4063 |        - |  2547.38 KB |        1.00 |
+| Ef_Load_NoTracking_ToDict     | 50  |  1,952.9 us |    13.99 us |    13.08 us |  1,954.7 us |  0.91 |    0.01 |  476.5625 |  375.0000 |        - |  2705.42 KB |        1.06 |
+|                               |     |             |             |             |             |       |         |           |           |          |             |             |
+| Ef_Include_Tracking_ToList    | 100 | 12,514.1 us |   105.45 us |    98.64 us | 12,526.4 us |  2.96 |    0.04 | 1468.7500 |  937.5000 | 328.1250 |  7598.16 KB |        1.49 |
+| Ef_FromSql_Tracking_ToList    | 100 |  8,864.3 us |   164.66 us |   154.02 us |  8,839.7 us |  2.09 |    0.04 | 1343.7500 |  875.0000 | 312.5000 |  7061.22 KB |        1.39 |
+| Ef_Include_NoTracking_ToArray | 100 |  7,981.6 us |    87.89 us |    82.21 us |  7,992.1 us |  1.88 |    0.03 | 1000.0000 |  968.7500 |        - |  6221.05 KB |        1.22 |
+| Ef_Load_Tracking_ToList       | 100 |  7,769.4 us |   150.62 us |   195.85 us |  7,708.3 us |  1.83 |    0.05 | 1312.5000 |  843.7500 | 281.2500 |   7081.2 KB |        1.39 |
+| Ef_LoadAsList_Tracking_ToList | 100 |  7,679.7 us |   119.49 us |   151.11 us |  7,686.1 us |  1.81 |    0.04 | 1343.7500 |  906.2500 | 312.5000 |  7088.61 KB |        1.39 |
+| Ef_FromSql_NoTracking_ToList  | 100 |  4,487.1 us |    78.24 us |    73.19 us |  4,460.7 us |  1.06 |    0.02 |  906.2500 |  812.5000 |   7.8125 |  5349.54 KB |        1.05 |
+| Dapper_TwoQuery               | 100 |  4,235.1 us |    59.87 us |    56.00 us |  4,218.2 us |  1.00 |    0.02 |  890.6250 |  734.3750 |  15.6250 |  5090.84 KB |        1.00 |
+| Ef_Load_NoTracking_ToDict     | 100 |  3,658.7 us |    35.84 us |    33.52 us |  3,663.9 us |  0.86 |    0.01 |  914.0625 |  812.5000 |  15.6250 |   5345.8 KB |        1.05 |
+|                               |     |             |             |             |             |       |         |           |           |          |             |             |
+| Ef_Include_Tracking_ToList    | 300 | 74,980.0 us | 1,425.59 us | 1,400.12 us | 74,837.1 us |  6.50 |    0.12 | 4000.0000 | 2428.5714 | 857.1429 | 22213.19 KB |        1.45 |
+| Ef_Include_NoTracking_ToArray | 300 | 66,724.2 us |   844.10 us |   748.27 us | 66,679.0 us |  5.78 |    0.07 | 3875.0000 | 2750.0000 | 875.0000 | 18541.75 KB |        1.21 |
+| Ef_LoadAsList_Tracking_ToList | 300 | 23,453.2 us |   465.64 us |   751.92 us | 23,168.1 us |  2.03 |    0.07 | 4062.5000 | 2531.2500 | 843.7500 |  20717.9 KB |        1.35 |
+| Ef_FromSql_Tracking_ToList    | 300 | 22,259.1 us |   359.34 us |   318.54 us | 22,217.8 us |  1.93 |    0.03 | 4000.0000 | 2406.2500 | 812.5000 | 20594.06 KB |        1.35 |
+| Ef_Load_Tracking_ToList       | 300 | 22,164.2 us |   265.53 us |   248.38 us | 22,119.4 us |  1.92 |    0.02 | 4000.0000 | 2437.5000 | 812.5000 | 20653.46 KB |        1.35 |
+| Ef_Load_NoTracking_ToDict     | 300 | 12,470.5 us |   246.87 us |   346.07 us | 12,429.2 us |  1.08 |    0.03 | 3093.7500 | 1937.5000 | 625.0000 | 15889.36 KB |        1.04 |
+| Ef_FromSql_NoTracking_ToList  | 300 | 12,179.4 us |   207.32 us |   183.79 us | 12,170.1 us |  1.06 |    0.02 | 3187.5000 | 1906.2500 | 625.0000 | 15894.15 KB |        1.04 |
+| Dapper_TwoQuery               | 300 | 11,541.0 us |    62.04 us |    58.04 us | 11,569.6 us |  1.00 |    0.01 | 3000.0000 | 1984.3750 | 734.3750 | 15302.64 KB |        1.00 |
+
+</details><br/>
